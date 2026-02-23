@@ -47,6 +47,9 @@ export function WelcomeScreen() {
             <p className="text-lg text-muted-foreground">
               {mode === 'signin' ? 'Sign in to get started' : 'Create your account'}
             </p>
+            <p className="text-xs text-muted-foreground">
+              Email sign-in lets us track your solves and show you on the leaderboard.
+            </p>
           </div>
 
           {sent ? (
