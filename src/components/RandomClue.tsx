@@ -1,14 +1,33 @@
 import { useState, useEffect, useRef } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ClueCard } from '@/components/ClueCard'
+import { DisputeActions } from '@/components/DisputeActions'
+import { FlagDialog } from '@/components/FlagDialog'
 import { SolveDialog } from '@/components/SolveDialog'
 import { fetchRandomClue } from '@/lib/queries'
 import { useClueChanges } from '@/components/ClueContext'
 import type { Clue } from '@/lib/types'
 
+const statusColors: Record<string, string> = {
+  unsolved: 'bg-secondary text-secondary-foreground',
+  solved: 'bg-primary/10 text-primary',
+  flagged: 'bg-destructive/10 text-destructive',
+  verified: 'bg-green-500/10 text-green-700',
+}
+
 export function RandomClue() {
   const [loading, setLoading] = useState(false)
   const [recordClue, setRecordClue] = useState<Clue | null>(null)
+  const [flagClue, setFlagClue] = useState<Clue | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const { lastChange } = useClueChanges()
 
   // Browser-style history: a list of clues and a cursor index
@@ -36,17 +55,19 @@ export function RandomClue() {
     try {
       const data = await fetchRandomClue()
       if (data) {
-        // Truncate any forward history and append
-        const newHistory = historyRef.current.slice(0, index + 1)
-        newHistory.push(data)
-        historyRef.current = newHistory
-        setIndex(newHistory.length - 1)
+        historyRef.current.push(data)
+        setIndex(historyRef.current.length - 1)
       }
     } catch (err) {
       console.error('Failed to fetch random clue:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  function updateCurrentClue(updated: Clue) {
+    historyRef.current[index] = updated
+    setIndex((i) => i)
   }
 
   // Load a random clue on mount
@@ -62,68 +83,134 @@ export function RandomClue() {
           <ClueCard
             clue={clue}
             inlineSolve={{
-              onSolved: (updated) => {
-                historyRef.current[index] = updated
-                setIndex((i) => i)
-              },
+              onSolved: updateCurrentClue,
             }}
             actions={
-              clue.status === 'unsolved' ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setRecordClue(clue)}
-                >
-                  Record Existing Answer
-                </Button>
-              ) : undefined
+              <>
+                {clue.status === 'unsolved' && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setRecordClue(clue)}
+                  >
+                    Record Existing Answer
+                  </Button>
+                )}
+                {(clue.status === 'solved' || clue.status === 'verified') && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setFlagClue(clue)}
+                  >
+                    Flag
+                  </Button>
+                )}
+                {clue.status === 'flagged' && (
+                  <DisputeActions clue={clue} onUpdated={updateCurrentClue} />
+                )}
+              </>
             }
           />
         </div>
       )}
 
-      <div className="flex gap-2">
-        {canGoBack && (
-          <Button
-            variant="outline"
-            onClick={() => setIndex((i) => i - 1)}
-            className="h-14 text-lg font-bold"
-            size="lg"
-          >
-            Previous
-          </Button>
-        )}
-        {canGoForward ? (
-          <Button
-            variant="outline"
-            onClick={() => setIndex((i) => i + 1)}
-            className="flex-1 h-14 text-lg font-bold"
-            size="lg"
-          >
-            Next
-          </Button>
-        ) : (
-          <Button
-            onClick={getNewClue}
-            disabled={loading}
-            className="flex-1 h-14 text-lg font-bold"
-            size="lg"
-          >
-            {loading ? 'Finding a clue...' : 'Give Me Another Clue!'}
-          </Button>
-        )}
-      </div>
+      <Button
+        onClick={getNewClue}
+        disabled={loading}
+        className="w-full h-14 text-lg font-bold"
+        size="lg"
+      >
+        {loading ? 'Finding a clue...' : 'Give Me Another Clue!'}
+      </Button>
+
+      {historyRef.current.length > 0 && (
+        <>
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!canGoBack}
+              onClick={() => setIndex((i) => i - 1)}
+              className="gap-1"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => setHistoryOpen(true)}
+            >
+              View History
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!canGoForward}
+              onClick={() => setIndex((i) => i + 1)}
+              className="gap-1"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+
+          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+            <DialogContent className="max-h-[80vh] flex flex-col">
+              <DialogHeader>
+                <DialogTitle>Clue History</DialogTitle>
+              </DialogHeader>
+              <div className="overflow-y-auto divide-y border rounded-md -mx-1">
+                {[...historyRef.current].reverse().map((entry, revIdx) => {
+                  const realIdx = historyRef.current.length - 1 - revIdx
+                  const isActive = realIdx === index
+                  return (
+                    <button
+                      key={`${entry.id}-${realIdx}`}
+                      className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent transition-colors ${
+                        isActive ? 'bg-accent/60 font-medium' : ''
+                      }`}
+                      onClick={() => {
+                        setIndex(realIdx)
+                        setHistoryOpen(false)
+                      }}
+                    >
+                      <span className="font-mono text-xs shrink-0">
+                        {entry.number} {entry.direction}
+                      </span>
+                      <Badge className={`${statusColors[entry.status]} text-[10px] shrink-0`}>
+                        {entry.status}
+                      </Badge>
+                      <span className="truncate text-muted-foreground text-xs">
+                        {entry.text}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
       <SolveDialog
         clue={recordClue}
         open={!!recordClue}
         onOpenChange={(open) => !open && setRecordClue(null)}
         onSolved={(updated) => {
-          historyRef.current[index] = updated
-          setIndex((i) => i)
+          updateCurrentClue(updated)
           setRecordClue(null)
         }}
         mode="record"
+      />
+
+      <FlagDialog
+        clue={flagClue}
+        open={!!flagClue}
+        onOpenChange={(open) => !open && setFlagClue(null)}
+        onFlagged={(updated) => {
+          updateCurrentClue(updated)
+          setFlagClue(null)
+        }}
       />
     </div>
   )
