@@ -136,6 +136,25 @@ You don't need dashboard access to run the app locally — only to manage the da
 | `npm run preview` | Preview the production build |
 | `npm run lint` | Run ESLint |
 
+## Deployment
+
+The app is deployed on [Vercel](https://vercel.com) at [dans-crossword-party.vercel.app](https://dans-crossword-party.vercel.app).
+
+Vercel auto-detects the Vite preset. The only configuration needed:
+
+- **Root Directory:** `./`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+
+**Environment variables** (set in Vercel project settings):
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon/publishable key |
+
+Pushes to `main` trigger automatic deployments.
+
 ## Authentication
 
 The app uses Supabase magic link auth. Users sign up with their email, first name, and last name, then receive a magic link to log in. Profiles are stored in a `profiles` table and the generated display name (e.g. "John D.") is used for the leaderboard and solve attribution.
