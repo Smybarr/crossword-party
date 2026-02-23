@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +23,39 @@ const statusColors: Record<string, string> = {
   verified: 'bg-green-500/10 text-green-700',
 }
 
+const HISTORY_KEY = 'crossword-random-history'
+const MAX_HISTORY = 50
+
+interface HistoryCache {
+  clues: Clue[]
+  index: number
+}
+
+function loadHistory(): HistoryCache | null {
+  try {
+    const raw = sessionStorage.getItem(HISTORY_KEY)
+    if (!raw) return null
+    const data = JSON.parse(raw) as HistoryCache
+    if (Array.isArray(data.clues) && typeof data.index === 'number') return data
+    return null
+  } catch {
+    return null
+  }
+}
+
+function saveHistory(clues: Clue[], index: number) {
+  try {
+    const trimmed = clues.slice(-MAX_HISTORY)
+    const adjustedIndex = index - (clues.length - trimmed.length)
+    sessionStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify({ clues: trimmed, index: Math.max(0, adjustedIndex) })
+    )
+  } catch {
+    // storage full — ignore
+  }
+}
+
 export function RandomClue() {
   const [loading, setLoading] = useState(false)
   const [recordClue, setRecordClue] = useState<Clue | null>(null)
@@ -31,12 +64,18 @@ export function RandomClue() {
   const { lastChange } = useClueChanges()
 
   // Browser-style history: a list of clues and a cursor index
-  const historyRef = useRef<Clue[]>([])
-  const [index, setIndex] = useState(-1)
+  const cachedRef = useRef(loadHistory())
+  const historyRef = useRef<Clue[]>(cachedRef.current?.clues ?? [])
+  const [index, setIndex] = useState(cachedRef.current ? cachedRef.current.index : -1)
 
   const clue = index >= 0 ? historyRef.current[index] : null
   const canGoBack = index > 0
   const canGoForward = index < historyRef.current.length - 1
+
+  const persistIndex = useCallback((newIndex: number) => {
+    setIndex(newIndex)
+    saveHistory(historyRef.current, newIndex)
+  }, [])
 
   // Update displayed clue and history if it changes via realtime
   useEffect(() => {
@@ -44,11 +83,12 @@ export function RandomClue() {
     historyRef.current = historyRef.current.map((c) =>
       c.id === lastChange.id ? lastChange : c
     )
+    saveHistory(historyRef.current, index)
     // Force re-render if current clue was updated
     if (clue && lastChange.id === clue.id) {
       setIndex((i) => i)
     }
-  }, [lastChange, clue])
+  }, [lastChange, clue, index])
 
   async function getNewClue() {
     setLoading(true)
@@ -56,7 +96,7 @@ export function RandomClue() {
       const data = await fetchRandomClue()
       if (data) {
         historyRef.current.push(data)
-        setIndex(historyRef.current.length - 1)
+        persistIndex(historyRef.current.length - 1)
       }
     } catch (err) {
       console.error('Failed to fetch random clue:', err)
@@ -67,12 +107,15 @@ export function RandomClue() {
 
   function updateCurrentClue(updated: Clue) {
     historyRef.current[index] = updated
+    saveHistory(historyRef.current, index)
     setIndex((i) => i)
   }
 
-  // Load a random clue on mount
+  // Load a random clue on mount only if no cached history
   useEffect(() => {
-    getNewClue()
+    if (historyRef.current.length === 0) {
+      getNewClue()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -130,7 +173,7 @@ export function RandomClue() {
               variant="outline"
               size="sm"
               disabled={!canGoBack}
-              onClick={() => setIndex((i) => i - 1)}
+              onClick={() => persistIndex(index - 1)}
               className="gap-1"
             >
               <ChevronLeft className="size-4" />
@@ -147,7 +190,7 @@ export function RandomClue() {
               variant="outline"
               size="sm"
               disabled={!canGoForward}
-              onClick={() => setIndex((i) => i + 1)}
+              onClick={() => persistIndex(index + 1)}
               className="gap-1"
             >
               <ChevronRight className="size-4" />
@@ -170,7 +213,7 @@ export function RandomClue() {
                         isActive ? 'bg-accent/60 font-medium' : ''
                       }`}
                       onClick={() => {
-                        setIndex(realIdx)
+                        persistIndex(realIdx)
                         setHistoryOpen(false)
                       }}
                     >
