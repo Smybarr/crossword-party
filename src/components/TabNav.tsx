@@ -17,7 +17,7 @@ interface TabNavProps {
 
 export function TabNav({ active, onChange }: TabNavProps) {
   return (
-    <nav className="shrink-0 border-t bg-card">
+    <nav className="shrink-0 border-t bg-card pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
         {tabs.map((tab) => {
           const Icon = tab.icon
