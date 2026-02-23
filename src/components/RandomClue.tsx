@@ -24,7 +24,7 @@ const statusColors: Record<string, string> = {
 }
 
 const HISTORY_KEY = 'crossword-random-history'
-const MAX_HISTORY = 50
+const MAX_HISTORY = 100
 
 interface HistoryCache {
   clues: Clue[]
@@ -201,6 +201,9 @@ export function RandomClue() {
             <DialogContent className="max-h-[80vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Clue History</DialogTitle>
+                <p className="text-xs text-muted-foreground">
+                  Up to {MAX_HISTORY} clues are kept in history.
+                </p>
               </DialogHeader>
               <div className="overflow-y-auto divide-y border rounded-md -mx-1">
                 {[...historyRef.current].reverse().map((entry, revIdx) => {
