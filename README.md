@@ -155,6 +155,16 @@ Vercel auto-detects the Vite preset. The only configuration needed:
 
 Pushes to `main` trigger automatic deployments.
 
+### Transferring Ownership
+
+To hand the project to a new owner (e.g. Dan):
+
+1. **GitHub repo**: Go to repo **Settings → General → Transfer ownership** and transfer to the new owner's GitHub account
+2. **Vercel project**: The new owner should create a free [Vercel](https://vercel.com) account, then import the repo as a new project — Vercel will auto-detect the Vite preset. Add the two environment variables listed above.
+3. **Supabase project**: In the [Supabase dashboard](https://supabase.com/dashboard), go to **Organization settings → Members** and invite the new owner, then transfer the organization ownership. Alternatively, transfer just the project to their organization.
+
+The new owner will have full control over deployments, the database, and auth configuration.
+
 ## Authentication
 
 The app uses Supabase magic link auth. Users sign up with their email, first name, and last name, then receive a magic link to log in. Profiles are stored in a `profiles` table and the generated display name (e.g. "John D.") is used for the leaderboard and solve attribution.
