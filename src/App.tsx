@@ -1,0 +1,49 @@
+import { useState } from 'react'
+import type { TabId } from '@/lib/types'
+import { Layout } from '@/components/Layout'
+import { TabNav } from '@/components/TabNav'
+import { ClueProvider } from '@/components/ClueContext'
+import { IdentityProvider, useIdentityContext } from '@/components/IdentityContext'
+import { WelcomeScreen } from '@/components/WelcomeScreen'
+import { RandomClue } from '@/components/RandomClue'
+import { SearchBrowse } from '@/components/SearchBrowse'
+import { Leaderboard } from '@/components/Leaderboard'
+import { Toaster } from '@/components/ui/sonner'
+
+function MainApp() {
+  const [activeTab, setActiveTab] = useState<TabId>('random')
+
+  return (
+    <ClueProvider>
+      <Layout>
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === 'random' && <RandomClue />}
+            {activeTab === 'search' && <SearchBrowse />}
+            {activeTab === 'leaderboard' && <Leaderboard />}
+          </div>
+          <TabNav active={activeTab} onChange={setActiveTab} />
+        </div>
+      </Layout>
+      <Toaster position="top-center" />
+    </ClueProvider>
+  )
+}
+
+function AppContent() {
+  const { displayName } = useIdentityContext()
+
+  if (!displayName) {
+    return <WelcomeScreen />
+  }
+
+  return <MainApp />
+}
+
+export default function App() {
+  return (
+    <IdentityProvider>
+      <AppContent />
+    </IdentityProvider>
+  )
+}
