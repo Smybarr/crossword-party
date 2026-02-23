@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,6 +15,23 @@ export function WelcomeScreen() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  const goToStep = useCallback((newStep: Step) => {
+    setStep(newStep)
+    setError(null)
+    if (newStep !== 'email') {
+      window.history.pushState({ step: newStep }, '')
+    }
+  }, [])
+
+  useEffect(() => {
+    function handlePopState() {
+      setStep('email')
+      setError(null)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -22,7 +39,7 @@ export function WelcomeScreen() {
     try {
       const { exists } = await quickSignIn(email.trim())
       if (!exists) {
-        setStep('name')
+        goToStep('name')
       }
       // If exists, verifyOtp already ran — onAuthStateChange will pick up the session
     } catch (err) {
@@ -38,7 +55,7 @@ export function WelcomeScreen() {
     setSubmitting(true)
     try {
       await sendMagicLink(email.trim(), firstName.trim(), lastName.trim())
-      setStep('sent')
+      goToStep('sent')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -109,7 +126,7 @@ export function WelcomeScreen() {
               <button
                 type="button"
                 className="block w-full text-xs text-center text-muted-foreground underline hover:text-foreground transition-colors"
-                onClick={() => { setStep('email'); setError(null) }}
+                onClick={() => window.history.back()}
               >
                 Use a different email
               </button>
@@ -125,7 +142,7 @@ export function WelcomeScreen() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setStep('email'); setEmail(''); setError(null) }}
+                onClick={() => { window.history.back(); setEmail('') }}
               >
                 Use a different email
               </Button>
