@@ -8,18 +8,56 @@ import { FlagDialog } from '@/components/FlagDialog'
 import { DisputeActions } from '@/components/DisputeActions'
 import { searchClues, fetchNearbyClues } from '@/lib/queries'
 import { useClueChanges } from '@/components/ClueContext'
+import { useSearchState } from '@/hooks/useSearchParams'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import type { Clue, ClueDirection } from '@/lib/types'
 
 const PAGE_SIZE = 20
+const CACHE_KEY = 'crossword-search-cache'
+const MAX_CACHED_RESULTS = 40
+
+interface SearchCache {
+  query: string
+  filters: FilterValues
+  results: Clue[]
+}
+
+function loadCache(): SearchCache | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function saveCache(query: string, filters: FilterValues, results: Clue[]) {
+  try {
+    const data: SearchCache = { query, filters, results: results.slice(0, MAX_CACHED_RESULTS) }
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data))
+  } catch {
+    // storage full — ignore
+  }
+}
+
+function cacheMatches(cache: SearchCache, query: string, filters: FilterValues): boolean {
+  return (
+    cache.query === query &&
+    JSON.stringify(cache.filters) === JSON.stringify(filters)
+  )
+}
 
 export function SearchBrowse() {
-  const [query, setQuery] = useState('')
-  const [filters, setFilters] = useState<FilterValues>({})
-  const [results, setResults] = useState<Clue[]>([])
+  const { initialQuery, initialFilters, syncToUrl } = useSearchState()
+  const [query, setQuery] = useState(initialQuery)
+  const [filters, setFilters] = useState<FilterValues>(initialFilters)
+  const cached = useRef(loadCache())
+  const hasInitialParams = initialQuery || Object.values(initialFilters).some((v) => v != null)
+  const cacheHit = cached.current && hasInitialParams && cacheMatches(cached.current, initialQuery, initialFilters)
+  const [results, setResults] = useState<Clue[]>(cacheHit ? cached.current!.results : [])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(false)
-  const [searched, setSearched] = useState(false)
+  const [searched, setSearched] = useState(!!cacheHit)
   const { lastChange } = useClueChanges()
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
@@ -56,8 +94,13 @@ export function SearchBrowse() {
         })
         if (offset === 0) {
           setResults(data)
+          saveCache(query, filters, data)
         } else {
-          setResults((prev) => [...prev, ...data])
+          setResults((prev) => {
+            const combined = [...prev, ...data]
+            saveCache(query, filters, combined)
+            return combined
+          })
         }
         setHasMore(data.length === PAGE_SIZE)
         setSearched(true)
@@ -74,10 +117,11 @@ export function SearchBrowse() {
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
+      syncToUrl(query, filters)
       doSearch(0)
     }, 300)
     return () => clearTimeout(debounceRef.current)
-  }, [doSearch])
+  }, [doSearch, query, filters, syncToUrl])
 
   function updateClue(updated: Clue) {
     setResults((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
@@ -87,16 +131,19 @@ export function SearchBrowse() {
     setLoading(true)
     try {
       const data = await fetchNearbyClues(clue.number, clue.direction as ClueDirection)
-      setQuery('')
-      setFilters((prev) => ({
-        ...prev,
+      const newFilters: FilterValues = {
+        ...filters,
         direction: clue.direction as ClueDirection,
         acrossChecked: clue.direction === 'Across',
         downChecked: clue.direction === 'Down',
-      }))
+      }
+      setQuery('')
+      setFilters(newFilters)
       setResults(data)
       setHasMore(false)
       setSearched(true)
+      syncToUrl('', newFilters)
+      saveCache('', newFilters, data)
     } catch (err) {
       console.error('Browse nearby failed:', err)
     } finally {
