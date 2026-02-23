@@ -31,9 +31,17 @@ function MainApp() {
 }
 
 function AppContent() {
-  const { displayName } = useIdentityContext()
+  const { session, loading } = useIdentityContext()
 
-  if (!displayName) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-background">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  if (!session) {
     return <WelcomeScreen />
   }
 

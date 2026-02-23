@@ -1,18 +1,30 @@
 import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
-import { useIdentity } from '@/hooks/useIdentity'
+import type { Session } from '@supabase/supabase-js'
+import { useAuth } from '@/hooks/useAuth'
+import type { Profile } from '@/lib/types'
 
 interface IdentityContextValue {
+  session: Session | null
+  profile: Profile | null
+  loading: boolean
   displayName: string | null
-  setDisplayName: (name: string) => void
+  signIn: (email: string) => Promise<void>
+  signUp: (email: string, firstName: string, lastName: string) => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const IdentityContext = createContext<IdentityContextValue | null>(null)
 
 export function IdentityProvider({ children }: { children: ReactNode }) {
-  const identity = useIdentity()
+  const auth = useAuth()
   return (
-    <IdentityContext.Provider value={identity}>
+    <IdentityContext.Provider
+      value={{
+        ...auth,
+        displayName: auth.profile?.display_name ?? null,
+      }}
+    >
       {children}
     </IdentityContext.Provider>
   )

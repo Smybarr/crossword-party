@@ -24,4 +24,12 @@ export interface ClueStats {
   total: number
 }
 
+export interface Profile {
+  id: string
+  first_name: string
+  last_name: string
+  display_name: string
+  created_at: string
+}
+
 export type TabId = 'random' | 'search' | 'leaderboard'
