@@ -18,11 +18,17 @@ function MainApp() {
     <ClueProvider>
       <Layout onProfileTap={() => setActiveTab('profile')}>
         <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto">
-            {activeTab === 'random' && <RandomClue />}
-            {activeTab === 'search' && <SearchBrowse />}
-            {activeTab === 'leaderboard' && <Leaderboard />}
-            {activeTab === 'profile' && <ProfilePage />}
+          <div className={`flex-1 overflow-y-auto ${activeTab !== 'random' ? 'hidden' : ''}`}>
+            <RandomClue />
+          </div>
+          <div className={`flex-1 overflow-y-auto ${activeTab !== 'search' ? 'hidden' : ''}`}>
+            <SearchBrowse />
+          </div>
+          <div className={`flex-1 overflow-y-auto ${activeTab !== 'leaderboard' ? 'hidden' : ''}`}>
+            <Leaderboard />
+          </div>
+          <div className={`flex-1 overflow-y-auto ${activeTab !== 'profile' ? 'hidden' : ''}`}>
+            <ProfilePage />
           </div>
           <TabNav active={activeTab} onChange={setActiveTab} />
         </div>
