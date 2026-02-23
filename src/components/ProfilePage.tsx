@@ -48,7 +48,7 @@ export function ProfilePage() {
         </div>
         <h2 className="text-xl font-semibold">{displayName}</h2>
         {memberSince && (
-          <p className="text-sm text-muted-foreground">Member since {memberSince}</p>
+          <p className="text-sm text-muted-foreground">Cruciverbalist since {memberSince}</p>
         )}
       </div>
 
