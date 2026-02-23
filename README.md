@@ -169,6 +169,8 @@ The new owner will have full control over deployments, the database, and auth co
 
 The app uses Supabase magic link auth. Users sign up with their email, first name, and last name, then receive a magic link to log in. Profiles are stored in a `profiles` table and the generated display name (e.g. "John D.") is used for the leaderboard and solve attribution.
 
+**Email case sensitivity**: Emails are handled case-insensitively throughout. The `auto-signin` edge function lowercases both sides when looking up existing users, so `John@example.com` and `john@example.com` resolve to the same account. Returning users are signed in instantly without a magic link email; new users are prompted for their name and sent a magic link to complete registration.
+
 ---
 
 ## Database Schema
