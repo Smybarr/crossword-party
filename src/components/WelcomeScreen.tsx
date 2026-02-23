@@ -4,29 +4,27 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { useIdentityContext } from '@/components/IdentityContext'
 
-type Mode = 'signup' | 'signin'
+type Step = 'email' | 'name' | 'sent'
 
 export function WelcomeScreen() {
-  const { signUp, signIn } = useIdentityContext()
-  const [mode, setMode] = useState<Mode>('signin')
+  const { quickSignIn, sendMagicLink } = useIdentityContext()
+  const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
     try {
-      if (mode === 'signup') {
-        await signUp(email.trim(), firstName.trim(), lastName.trim())
-      } else {
-        await signIn(email.trim())
+      const { exists } = await quickSignIn(email.trim())
+      if (!exists) {
+        setStep('name')
       }
-      setSent(true)
+      // If exists, verifyOtp already ran — onAuthStateChange will pick up the session
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -34,9 +32,19 @@ export function WelcomeScreen() {
     }
   }
 
-  const canSubmit =
-    email.trim() &&
-    (mode === 'signin' || (firstName.trim() && lastName.trim()))
+  async function handleNameSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
+    try {
+      await sendMagicLink(email.trim(), firstName.trim(), lastName.trim())
+      setStep('sent')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex items-center justify-center min-h-dvh bg-background p-4">
@@ -45,14 +53,70 @@ export function WelcomeScreen() {
           <div className="text-center space-y-3">
             <h1 className="text-2xl font-bold">Dan's Giant Crossword Party</h1>
             <p className="text-lg text-muted-foreground">
-              {mode === 'signin' ? 'Sign in to get started' : 'Create your account'}
+              {step === 'name' ? 'One more thing...' : 'Sign in to get started'}
             </p>
             <p className="text-xs text-muted-foreground">
               Email sign-in lets us track your solves and show you on the leaderboard.
             </p>
           </div>
 
-          {sent ? (
+          {step === 'email' && (
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <Input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoFocus
+              />
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button
+                type="submit"
+                disabled={!email.trim() || submitting}
+                className="w-full"
+              >
+                {submitting ? 'Signing in...' : 'Continue'}
+              </Button>
+            </form>
+          )}
+
+          {step === 'name' && (
+            <form onSubmit={handleNameSubmit} className="space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Looks like you're new! Enter your name so we know who you are.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="First name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  autoFocus
+                />
+                <Input
+                  placeholder="Last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button
+                type="submit"
+                disabled={!firstName.trim() || !lastName.trim() || submitting}
+                className="w-full"
+              >
+                {submitting ? 'Sending...' : 'Send Magic Link'}
+              </Button>
+              <button
+                type="button"
+                className="block w-full text-xs text-center text-muted-foreground underline hover:text-foreground transition-colors"
+                onClick={() => { setStep('email'); setError(null) }}
+              >
+                Use a different email
+              </button>
+            </form>
+          )}
+
+          {step === 'sent' && (
             <div className="text-center space-y-3">
               <p className="text-sm font-medium">Check your email for a magic link!</p>
               <p className="text-xs text-muted-foreground">
@@ -61,74 +125,11 @@ export function WelcomeScreen() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSent(false); setEmail('') }}
+                onClick={() => { setStep('email'); setEmail(''); setError(null) }}
               >
                 Use a different email
               </Button>
             </div>
-          ) : (
-            <>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {mode === 'signup' && (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="First name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      autoFocus
-                    />
-                    <Input
-                      placeholder="Last name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                )}
-                <Input
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoFocus={mode === 'signin'}
-                />
-                {error && (
-                  <p className="text-sm text-destructive">{error}</p>
-                )}
-                <Button
-                  type="submit"
-                  disabled={!canSubmit || submitting}
-                  className="w-full"
-                >
-                  {submitting ? 'Sending...' : 'Send Magic Link'}
-                </Button>
-              </form>
-
-              <p className="text-xs text-center text-muted-foreground">
-                {mode === 'signin' ? (
-                  <>
-                    Don't have an account?{' '}
-                    <button
-                      type="button"
-                      className="underline hover:text-foreground transition-colors"
-                      onClick={() => setMode('signup')}
-                    >
-                      Sign up
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    Already have an account?{' '}
-                    <button
-                      type="button"
-                      className="underline hover:text-foreground transition-colors"
-                      onClick={() => setMode('signin')}
-                    >
-                      Sign in
-                    </button>
-                  </>
-                )}
-              </p>
-            </>
           )}
         </CardContent>
       </Card>

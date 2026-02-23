@@ -41,7 +41,33 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [fetchProfile])
 
-  const signUp = useCallback(
+  const quickSignIn = useCallback(
+    async (email: string): Promise<{ exists: boolean }> => {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-signin`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Auto-signin failed')
+
+      if (data.exists) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: data.token_hash,
+          type: 'magiclink',
+        })
+        if (error) throw error
+      }
+
+      return { exists: data.exists }
+    },
+    []
+  )
+
+  const sendMagicLink = useCallback(
     async (email: string, firstName: string, lastName: string) => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -54,15 +80,10 @@ export function useAuth() {
     []
   )
 
-  const signIn = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({ email })
-    if (error) throw error
-  }, [])
-
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   }, [])
 
-  return { session, profile, loading, signUp, signIn, signOut }
+  return { session, profile, loading, quickSignIn, sendMagicLink, signOut }
 }

@@ -9,8 +9,8 @@ interface IdentityContextValue {
   profile: Profile | null
   loading: boolean
   displayName: string | null
-  signIn: (email: string) => Promise<void>
-  signUp: (email: string, firstName: string, lastName: string) => Promise<void>
+  quickSignIn: (email: string) => Promise<{ exists: boolean }>
+  sendMagicLink: (email: string, firstName: string, lastName: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
