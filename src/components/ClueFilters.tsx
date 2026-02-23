@@ -17,6 +17,8 @@ export interface FilterValues {
   statuses?: ClueStatus[]
   pageMin?: number | null
   pageMax?: number | null
+  numberMin?: number | null
+  numberMax?: number | null
 }
 
 interface ClueFiltersProps {
@@ -123,6 +125,33 @@ export function ClueFilters({ values, onChange, showStatus = true }: ClueFilters
           </div>
         </div>
       )}
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Clue Number Range</label>
+        <div className="flex items-center gap-1.5">
+          <Input
+            type="number"
+            className="w-[80px]"
+            min={1}
+            placeholder="Min"
+            value={values.numberMin ?? ''}
+            onChange={(e) =>
+              onChange({ ...values, numberMin: e.target.value ? Number(e.target.value) : null })
+            }
+          />
+          <span className="text-muted-foreground text-sm">to</span>
+          <Input
+            type="number"
+            className="w-[80px]"
+            min={1}
+            placeholder="Max"
+            value={values.numberMax ?? ''}
+            onChange={(e) =>
+              onChange({ ...values, numberMax: e.target.value ? Number(e.target.value) : null })
+            }
+          />
+        </div>
+      </div>
 
       <div className="space-y-1.5">
         <label className="text-sm font-medium">Clue Book Page Range</label>

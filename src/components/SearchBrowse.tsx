@@ -6,10 +6,10 @@ import { ClueFilters, type FilterValues } from '@/components/ClueFilters'
 import { SolveDialog } from '@/components/SolveDialog'
 import { FlagDialog } from '@/components/FlagDialog'
 import { DisputeActions } from '@/components/DisputeActions'
-import { searchClues } from '@/lib/queries'
+import { searchClues, fetchNearbyClues } from '@/lib/queries'
 import { useClueChanges } from '@/components/ClueContext'
 import { Search, SlidersHorizontal } from 'lucide-react'
-import type { Clue } from '@/lib/types'
+import type { Clue, ClueDirection } from '@/lib/types'
 
 const PAGE_SIZE = 20
 
@@ -40,12 +40,17 @@ export function SearchBrowse() {
     async (offset = 0) => {
       setLoading(true)
       try {
+        const trimmed = query.trim()
+        const isNumeric = /^\d+$/.test(trimmed)
         const data = await searchClues({
-          query: query.trim() || undefined,
+          query: isNumeric ? undefined : trimmed || undefined,
+          number: isNumeric ? Number(trimmed) : undefined,
           direction: filters.direction,
           statuses: filters.statuses,
           pageMin: filters.pageMin,
           pageMax: filters.pageMax,
+          numberMin: filters.numberMin,
+          numberMax: filters.numberMax,
           limit: PAGE_SIZE,
           offset,
         })
@@ -78,13 +83,34 @@ export function SearchBrowse() {
     setResults((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
   }
 
+  async function browseNearby(clue: Clue) {
+    setLoading(true)
+    try {
+      const data = await fetchNearbyClues(clue.number, clue.direction as ClueDirection)
+      setQuery('')
+      setFilters((prev) => ({
+        ...prev,
+        direction: clue.direction as ClueDirection,
+        acrossChecked: clue.direction === 'Across',
+        downChecked: clue.direction === 'Down',
+      }))
+      setResults(data)
+      setHasMore(false)
+      setSearched(true)
+    } catch (err) {
+      console.error('Browse nearby failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="p-4 space-y-4 max-w-lg mx-auto">
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search clue text..."
+            placeholder="Search clues or enter a number..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-8"
@@ -160,6 +186,14 @@ export function SearchBrowse() {
                     Flag
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => browseNearby(clue)}
+                  className="w-full"
+                >
+                  Browse Nearby
+                </Button>
               </div>
             }
           />

@@ -19,10 +19,13 @@ export async function fetchRandomClue(filters?: RandomClueFilters): Promise<Clue
 
 interface SearchFilters {
   query?: string
+  number?: number | null
   direction?: ClueDirection | null
   statuses?: string[]
   pageMin?: number | null
   pageMax?: number | null
+  numberMin?: number | null
+  numberMax?: number | null
   limit?: number
   offset?: number
 }
@@ -30,7 +33,9 @@ interface SearchFilters {
 export async function searchClues(filters: SearchFilters): Promise<Clue[]> {
   let q = supabase.from('clues').select('*')
 
-  if (filters.query) {
+  if (filters.number != null) {
+    q = q.eq('number', filters.number)
+  } else if (filters.query) {
     q = q.ilike('text', `%${filters.query}%`)
   }
   if (filters.direction) {
@@ -44,6 +49,12 @@ export async function searchClues(filters: SearchFilters): Promise<Clue[]> {
   }
   if (filters.pageMax) {
     q = q.lte('page', filters.pageMax)
+  }
+  if (filters.numberMin != null) {
+    q = q.gte('number', filters.numberMin)
+  }
+  if (filters.numberMax != null) {
+    q = q.lte('number', filters.numberMax)
   }
 
   q = q.order('number', { ascending: true })
@@ -193,4 +204,39 @@ export async function fetchRecentActivity(limit = 20): Promise<Clue[]> {
     .limit(limit)
   if (error) throw error
   return data as Clue[]
+}
+
+export async function fetchNearbyClues(
+  number: number,
+  direction: ClueDirection,
+  limit = 20,
+): Promise<Clue[]> {
+  const half = Math.ceil(limit / 2)
+
+  const [beforeResult, afterResult] = await Promise.all([
+    supabase
+      .from('clues')
+      .select('*')
+      .eq('direction', direction)
+      .lt('number', number)
+      .order('number', { ascending: false })
+      .limit(half),
+    supabase
+      .from('clues')
+      .select('*')
+      .eq('direction', direction)
+      .gte('number', number)
+      .order('number', { ascending: true })
+      .limit(half),
+  ])
+
+  if (beforeResult.error) throw beforeResult.error
+  if (afterResult.error) throw afterResult.error
+
+  const combined = [
+    ...((beforeResult.data as Clue[]) ?? []),
+    ...((afterResult.data as Clue[]) ?? []),
+  ]
+  combined.sort((a, b) => a.number - b.number)
+  return combined
 }
