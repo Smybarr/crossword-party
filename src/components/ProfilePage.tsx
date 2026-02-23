@@ -3,10 +3,18 @@ import { useIdentityContext } from '@/components/IdentityContext'
 import { fetchLeaderboard } from '@/lib/queries'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 
 export function ProfilePage() {
   const { displayName, profile, signOut } = useIdentityContext()
   const [stats, setStats] = useState<{ rank: number; solveCount: number } | null>(null)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
 
   const initials = profile
     ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`.toUpperCase()
@@ -71,10 +79,29 @@ export function ProfilePage() {
       <Button
         variant="outline"
         className="w-full"
-        onClick={() => signOut()}
+        onClick={() => setConfirmSignOut(true)}
       >
         Sign out
       </Button>
+
+      <Dialog open={confirmSignOut} onOpenChange={setConfirmSignOut}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Sign out?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to sign out?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmSignOut(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={() => signOut()}>
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
