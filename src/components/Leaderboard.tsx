@@ -42,7 +42,8 @@ export function Leaderboard() {
     }
   }, [changeCount, refresh])
 
-  const pct = stats && stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0
+  const completed = stats ? stats.solved + stats.verified : 0
+  const pct = stats && stats.total > 0 ? Math.round((completed / stats.total) * 100) : 0
 
   return (
     <div className="p-4 space-y-4 max-w-lg mx-auto">
@@ -51,7 +52,7 @@ export function Leaderboard() {
           <div className="flex items-baseline justify-between">
             <h2 className="text-2xl font-bold">{pct}% Complete</h2>
             <span className="text-sm text-muted-foreground">
-              {stats.solved.toLocaleString()} / {stats.total.toLocaleString()}
+              {completed.toLocaleString()} / {stats.total.toLocaleString()}
             </span>
           </div>
           <Progress value={pct} className="h-3" />

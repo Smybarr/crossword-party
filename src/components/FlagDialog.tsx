@@ -36,7 +36,7 @@ export function FlagDialog({
 
     setSubmitting(true)
     try {
-      const updated = await flagClue(clue.id, displayName, reason.trim())
+      const updated = await flagClue(clue.id, displayName, reason.trim(), clue)
       onFlagged(updated)
       toast.success('Clue flagged for review')
       setReason('')

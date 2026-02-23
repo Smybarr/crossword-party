@@ -8,6 +8,7 @@ import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { RandomClue } from '@/components/RandomClue'
 import { SearchBrowse } from '@/components/SearchBrowse'
 import { Leaderboard } from '@/components/Leaderboard'
+import { ProfilePage } from '@/components/ProfilePage'
 import { Toaster } from '@/components/ui/sonner'
 
 function MainApp() {
@@ -15,12 +16,13 @@ function MainApp() {
 
   return (
     <ClueProvider>
-      <Layout>
+      <Layout onProfileTap={() => setActiveTab('profile')}>
         <div className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto">
             {activeTab === 'random' && <RandomClue />}
             {activeTab === 'search' && <SearchBrowse />}
             {activeTab === 'leaderboard' && <Leaderboard />}
+            {activeTab === 'profile' && <ProfilePage />}
           </div>
           <TabNav active={activeTab} onChange={setActiveTab} />
         </div>

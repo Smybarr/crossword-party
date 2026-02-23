@@ -1,12 +1,13 @@
 import type { TabId } from '@/lib/types'
 import type { LucideIcon } from 'lucide-react'
-import { Dices, Search, Trophy } from 'lucide-react'
+import { CircleUserRound, Dices, Search, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const tabs: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: 'random', label: 'Random', icon: Dices },
   { id: 'search', label: 'Search', icon: Search },
   { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+  { id: 'profile', label: 'Profile', icon: CircleUserRound },
 ]
 
 interface TabNavProps {

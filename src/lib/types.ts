@@ -1,4 +1,4 @@
-export type ClueStatus = 'unsolved' | 'solved' | 'flagged'
+export type ClueStatus = 'unsolved' | 'solved' | 'flagged' | 'verified'
 export type ClueDirection = 'Across' | 'Down'
 
 export interface Clue {
@@ -13,6 +13,10 @@ export interface Clue {
   solved_at: string | null
   flagged_by: string | null
   flagged_reason: string | null
+  is_recorded: boolean
+  confirmation_count: number
+  previous_answer: string | null
+  previous_solved_by: string | null
   created_at: string
   updated_at: string
 }
@@ -21,6 +25,7 @@ export interface ClueStats {
   unsolved: number
   solved: number
   flagged: number
+  verified: number
   total: number
 }
 
@@ -32,4 +37,4 @@ export interface Profile {
   created_at: string
 }
 
-export type TabId = 'random' | 'search' | 'leaderboard'
+export type TabId = 'random' | 'search' | 'leaderboard' | 'profile'

@@ -22,6 +22,7 @@ const statusColors: Record<string, string> = {
   unsolved: 'bg-secondary text-secondary-foreground',
   solved: 'bg-primary/10 text-primary',
   flagged: 'bg-destructive/10 text-destructive',
+  verified: 'bg-green-500/10 text-green-700',
 }
 
 function InlineSolveForm({ clue, onSolved }: {
@@ -73,27 +74,26 @@ function InlineSolveForm({ clue, onSolved }: {
 export function ClueCard({ clue, actions, inlineSolve }: ClueCardProps) {
   return (
     <Card className={cn(
-      'transition-colors',
-      clue.status === 'solved' && 'border-primary/30',
+      'transition-colors py-0 gap-0',
+      (clue.status === 'solved' || clue.status === 'verified') && 'border-primary/30',
       clue.status === 'flagged' && 'border-destructive/30',
     )}>
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="px-3 py-2 space-y-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono font-bold text-lg">
-              {clue.number}
-            </span>
-            <Badge variant="outline">{clue.direction}</Badge>
+          <div className="font-mono font-bold text-lg">
+            {clue.number} {clue.direction}
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+            <Badge className={statusColors[clue.status]}>
+              {clue.status}
+            </Badge>
             <Badge variant="outline" className="text-xs">
-              p.{clue.page}
+              Clue Page {clue.page}
             </Badge>
           </div>
-          <Badge className={statusColors[clue.status]}>
-            {clue.status}
-          </Badge>
         </div>
 
-        <p className="text-base leading-relaxed">{clue.text}</p>
+        <p className="text-sm leading-snug">{clue.text}</p>
 
         {clue.status === 'solved' && clue.answer && (
           <div className="text-sm text-muted-foreground">
@@ -101,15 +101,35 @@ export function ClueCard({ clue, actions, inlineSolve }: ClueCardProps) {
               {clue.answer}
             </span>
             {clue.solved_by && (
-              <span> — solved by {clue.solved_by}</span>
+              <span> — {clue.is_recorded ? 'recorded' : 'solved'} by {clue.solved_by}</span>
             )}
           </div>
         )}
 
+        {clue.status === 'verified' && clue.answer && (
+          <div className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground font-mono tracking-wider">
+              {clue.answer}
+            </span>
+            {clue.solved_by && (
+              <span> — solved by {clue.solved_by}</span>
+            )}
+            <span className="text-green-700"> — verified ({clue.confirmation_count} confirmations)</span>
+          </div>
+        )}
+
         {clue.status === 'flagged' && (
-          <div className="text-sm text-destructive">
-            Flagged{clue.flagged_by ? ` by ${clue.flagged_by}` : ''}
-            {clue.flagged_reason ? `: ${clue.flagged_reason}` : ''}
+          <div className="text-sm text-destructive space-y-1">
+            <div>
+              Flagged{clue.flagged_by ? ` by ${clue.flagged_by}` : ''}
+              {clue.flagged_reason ? `: ${clue.flagged_reason}` : ''}
+            </div>
+            {clue.previous_answer && (
+              <div className="text-muted-foreground">
+                Disputed answer: <span className="font-mono font-semibold">{clue.previous_answer}</span>
+                {clue.previous_solved_by && <span> by {clue.previous_solved_by}</span>}
+              </div>
+            )}
           </div>
         )}
 

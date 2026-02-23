@@ -15,6 +15,19 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
+function getActivityBadge(clue: Clue) {
+  if (clue.status === 'verified') {
+    return { label: 'Verified', className: 'text-green-700 border-green-500/30' }
+  }
+  if (clue.status === 'flagged') {
+    return { label: 'Flagged', className: 'text-destructive border-destructive/30' }
+  }
+  if (clue.status === 'solved' && clue.is_recorded) {
+    return { label: 'Recorded', className: 'text-primary border-primary/30' }
+  }
+  return { label: 'Solved', className: 'text-primary border-primary/30' }
+}
+
 export function ActivityFeed() {
   const [activity, setActivity] = useState<Clue[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,7 +42,7 @@ export function ActivityFeed() {
 
   // Prepend realtime changes
   useEffect(() => {
-    if (!lastChange || (lastChange.status !== 'solved' && lastChange.status !== 'flagged')) return
+    if (!lastChange || !['solved', 'flagged', 'verified'].includes(lastChange.status)) return
     setActivity((prev) => {
       const filtered = prev.filter((c) => c.id !== lastChange.id)
       return [lastChange, ...filtered].slice(0, 30)
@@ -43,37 +56,33 @@ export function ActivityFeed() {
     <div className="space-y-2">
       <h3 className="font-semibold text-sm">Recent Activity</h3>
       <div className="space-y-1">
-        {activity.map((clue) => (
-          <div
-            key={clue.id}
-            className="flex items-center justify-between text-sm py-1.5 px-2 rounded hover:bg-accent/50"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <Badge
-                variant="outline"
-                className={
-                  clue.status === 'solved'
-                    ? 'text-primary border-primary/30'
-                    : 'text-destructive border-destructive/30'
-                }
-              >
-                {clue.status === 'solved' ? 'Solved' : 'Flagged'}
-              </Badge>
-              <span className="font-mono text-xs">
-                {clue.number} {clue.direction}
-              </span>
-              {clue.status === 'solved' && clue.answer && (
-                <span className="font-mono text-xs text-muted-foreground truncate">
-                  {clue.answer}
+        {activity.map((clue) => {
+          const badge = getActivityBadge(clue)
+          return (
+            <div
+              key={clue.id}
+              className="flex items-center justify-between text-sm py-1.5 px-2 rounded hover:bg-accent/50"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Badge variant="outline" className={badge.className}>
+                  {badge.label}
+                </Badge>
+                <span className="font-mono text-xs">
+                  {clue.number} {clue.direction}
                 </span>
-              )}
+                {(clue.status === 'solved' || clue.status === 'verified') && clue.answer && (
+                  <span className="font-mono text-xs text-muted-foreground truncate">
+                    {clue.answer}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
+                <span>{clue.solved_by || clue.flagged_by}</span>
+                <span>{timeAgo(clue.updated_at)}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
-              <span>{clue.solved_by || clue.flagged_by}</span>
-              <span>{timeAgo(clue.updated_at)}</span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
