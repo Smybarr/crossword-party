@@ -239,7 +239,7 @@ export function SearchBrowse() {
                   onClick={() => browseNearby(clue)}
                   className="w-full"
                 >
-                  Browse Nearby
+                  Browse Nearby Clues
                 </Button>
               </div>
             }
