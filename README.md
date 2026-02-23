@@ -245,6 +245,22 @@ After corrections: **28,850 unique clues** (up from 28,849 after deduplication, 
 
 ---
 
+## Keeping the Database Alive Between Parties
+
+The Supabase Free Plan **pauses projects after 7 days of inactivity** (no API requests). Since crossword parties may be 2-3 months apart, expect the database to pause between events.
+
+**Your options:**
+
+1. **Just let it pause and restore before the next party** — Click "Restore" in the [Supabase dashboard](https://supabase.com/dashboard) a few days before the party. It takes a few minutes and all data is preserved. You have a **90-day window** for one-click restore after pausing.
+
+2. **Ping it periodically** — A cron job, GitHub Action, or any scheduled task that hits the Supabase API once a week will prevent auto-pause. Even a simple `SELECT 1` via the REST API counts as activity.
+
+3. **Upgrade to Pro ($25/mo)** — Pro projects never auto-pause. Likely overkill for this use case.
+
+For a party app with 2-3 month gaps, option 1 is the simplest. The 90-day restore window comfortably covers the downtime.
+
+---
+
 ## Notes
 
 - The puzzle has clue numbers that go up to 24607, but with both Across and Down, there are 28,923 total clues
