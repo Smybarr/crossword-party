@@ -25,7 +25,7 @@ Located in `/ref`:
 
 ## QR Code
 
-The `/Crossword-Party-QRCode` folder contains QR codes linking to the deployed app in JPG, PNG, SVG, and PDF formats — handy for printing and sharing at parties.
+The `/crossword-party-qr-code` folder contains QR codes linking to the deployed app in JPG, PNG, SVG, and PDF formats — handy for printing and sharing at parties.
 
 ## How It Was Built
 
