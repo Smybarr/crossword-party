@@ -23,6 +23,14 @@ Located in `/ref`:
 - `clues_db.json` - All 28,923 clues in JSON format (Dan created this)
 - `crossword_clue_book.pdf` - Original 104-page clue book scan
 
+## QR Code
+
+The `/Crossword-Party-QRCode` folder contains QR codes linking to the deployed app in JPG, PNG, SVG, and PDF formats — handy for printing and sharing at parties.
+
+## How It Was Built
+
+See [DEVELOPMENT_TIMELINE.md](DEVELOPMENT_TIMELINE.md) for a detailed session-by-session account of how this app was built using Claude Code, including the prompts, design decisions, and the split between human-driven (UX/design) and AI-driven (implementation/architecture) contributions.
+
 ### Clue Data Structure
 
 ```json
