@@ -161,7 +161,13 @@ Vercel auto-detects the Vite preset. The only configuration needed:
 | `VITE_SUPABASE_URL` | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon/publishable key |
 
-Pushes to `main` trigger automatic deployments.
+**Any code changes pushed to the `main` branch will automatically trigger a new production deployment.** This means broken code on `main` = broken live app. To avoid this:
+
+- **Use a feature branch** for any non-trivial changes. Create a branch (`git checkout -b my-feature`), make your changes, test locally with `npm run dev`, then open a pull request to merge into `main`.
+- **Vercel generates preview deployments** for every pull request, so you can test changes at a temporary URL before merging to production.
+- **Keep `main` stable** — only merge when you're confident the change works.
+
+If the repo ever has more contributors and you want stronger safeguards, you can enable [branch protection rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-a-branch-protection-rule/about-branch-protection-rules) on `main` to require pull request reviews before merging.
 
 ### Transferring Ownership
 
