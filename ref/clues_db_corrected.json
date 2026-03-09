@@ -74268,7 +74268,7 @@
     "page": 43
   },
   {
-    "number": "21208",
+    "number": "21209",
     "direction": "Across",
     "text": "White poplars",
     "page": 43
@@ -75078,7 +75078,7 @@
     "page": 43
   },
   {
-    "number": "21438",
+    "number": "21439",
     "direction": "Across",
     "text": "Wear down",
     "page": 43
@@ -75392,13 +75392,19 @@
   {
     "number": "21509",
     "direction": "Across",
-    "text": "\"Bad to the",
+    "text": "\"Bad to the _____\"",
     "page": 44
   },
   {
     "number": "21510",
     "direction": "Across",
     "text": "St. Tropez sweetheart",
+    "page": 44
+  },
+  {
+    "number": "21512",
+    "direction": "Across",
+    "text": "_____-fi",
     "page": 44
   },
   {
@@ -75842,7 +75848,13 @@
   {
     "number": "21643",
     "direction": "Across",
-    "text": "Runs fast: Br. cit",
+    "text": "Runs fast: Br.",
+    "page": 44
+  },
+  {
+    "number": "21645",
+    "direction": "Across",
+    "text": "_____ cit",
     "page": 44
   },
   {
@@ -84261,6 +84273,12 @@
     "number": "24057",
     "direction": "Across",
     "text": "Mama's family ______ and ______ hounds",
+    "page": 49
+  },
+  {
+    "number": "24059",
+    "direction": "Across",
+    "text": "______ and hounds",
     "page": 49
   },
   {
@@ -93558,6 +93576,12 @@
     "page": 55
   },
   {
+    "number": "1829",
+    "direction": "Down",
+    "text": "Chopin composition",
+    "page": 55
+  },
+  {
     "number": "1831",
     "direction": "Down",
     "text": "Continent",
@@ -97563,12 +97587,6 @@
     "number": "2953",
     "direction": "Down",
     "text": "Plunder",
-    "page": 57
-  },
-  {
-    "number": "2954",
-    "direction": "Down",
-    "text": "Love Bug, e.g.",
     "page": 57
   },
   {
@@ -112736,7 +112754,13 @@
   {
     "number": "7308",
     "direction": "Down",
-    "text": "TV's \"Law and ____\" for Love\": Dryden drama",
+    "text": "TV's \"Law and ____\"",
+    "page": 65
+  },
+  {
+    "number": "7310",
+    "direction": "Down",
+    "text": "\"_____ for Love\": Dryden drama",
     "page": 65
   },
   {
@@ -130356,6 +130380,12 @@
     "page": 75
   },
   {
+    "number": "12304",
+    "direction": "Down",
+    "text": "Muslim god",
+    "page": 75
+  },
+  {
     "number": "12306",
     "direction": "Down",
     "text": "List price: abbr.",
@@ -130800,9 +130830,9 @@
     "page": 75
   },
   {
-    "number": "12462",
+    "number": "12463",
     "direction": "Down",
-    "text": "Vittoria town",
+    "text": "Witchhunt town",
     "page": 75
   },
   {
@@ -160460,7 +160490,13 @@
   {
     "number": "20912",
     "direction": "Down",
-    "text": "Bridget's being ____ up (go formal)",
+    "text": "Bridget's being",
+    "page": 94
+  },
+  {
+    "number": "20913",
+    "direction": "Down",
+    "text": " ____ up (go formal)",
     "page": 94
   },
   {
