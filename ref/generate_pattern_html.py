@@ -66,11 +66,15 @@ def find_pattern_anomalies(base_threshold=0.85):
 # Manually confirmed errors (verified against physical puzzle)
 # Format: (r, c): (current_val, 1, 1) where current_val: 1=WHITE->BLACK, 0=BLACK->WHITE
 CONFIRMED_ERRORS = {
-    # B->W: black cells that should be white
-    (215, 2): (0, 1, 1),  # C216 (verified)
-    (247, 2): (0, 1, 1),  # C248 (verified)
-    (87, 300): (0, 1, 1),  # KO88 (mirror of C216)
-    (55, 300): (0, 1, 1),  # KO56 (mirror of C248)
+    # B->W: black cells that should be white (column C and KO)
+    (55, 2): (0, 1, 1),    # C56 (mirror of KO248)
+    (87, 2): (0, 1, 1),    # C88 (mirror of KO216)
+    (215, 2): (0, 1, 1),   # C216 (verified)
+    (247, 2): (0, 1, 1),   # C248 (verified)
+    (55, 300): (0, 1, 1),  # KO56 (verified)
+    (87, 300): (0, 1, 1),  # KO88 (verified)
+    (215, 300): (0, 1, 1), # KO216 (verified)
+    (247, 300): (0, 1, 1), # KO248 (verified)
     # W->B: Row 3: verified + 180deg mirrors
     (2, 117): (1, 1, 1),  # DN3 (verified)
     (2, 119): (1, 1, 1),  # DP3 (verified)
